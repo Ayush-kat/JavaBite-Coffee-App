@@ -16,22 +16,14 @@ import java.util.List;
 public interface TableBookingRepository extends JpaRepository<TableBooking, Long> {
 
     List<TableBooking> findByCustomerOrderByBookingDateDescBookingTimeDesc(User customer);
-
-    // ✅ ADD THIS METHOD
     List<TableBooking> findByBookingDate(LocalDate date);
     List<TableBooking> findByStatus(BookingStatus status);
     Long countByStatus(BookingStatus status);
 
-    @Query("SELECT b FROM TableBooking b WHERE b.bookingDate = :date AND b.bookingTime = :time " +
-            "AND (b.status = 'CONFIRMED' OR b.status = 'ACTIVE')")
-    List<TableBooking> findBookedSlots(
-            @Param("date") LocalDate date,
-            @Param("time") LocalTime time);
-
+    // ✅ FIXED: Query using string comparison since bookingTime is stored as String
     @Query("SELECT COUNT(b) FROM TableBooking b WHERE b.bookingDate = :date AND b.bookingTime = :time " +
             "AND (b.status = 'CONFIRMED' OR b.status = 'ACTIVE')")
     Long countBookingsForSlot(
             @Param("date") LocalDate date,
-            @Param("time") LocalTime time);
-
+            @Param("time") String time);  // Changed to String
 }

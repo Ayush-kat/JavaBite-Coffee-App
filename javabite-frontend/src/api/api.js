@@ -1,4 +1,4 @@
-// src/api/api.js - FINAL WORKING VERSION
+// src/api/api.js - COMPLETE WITH AVAILABILITY CHECK
 
 const API_BASE_URL = 'http://localhost:8080/api';
 
@@ -128,6 +128,21 @@ export const bookingApi = {
     getMyBookings: async () => {
         const data = await apiCall('/bookings/my-bookings');
         return data;
+    },
+
+    // ✅ NEW: Get available tables for specific date and time
+    getAvailableTables: async (date, time) => {
+        try {
+            console.log('📡 API: Fetching available tables for', date, time);
+            const data = await apiCall(
+                `/bookings/available-tables?date=${date}&time=${time}`
+            );
+            console.log('✅ API: Received availability data:', data);
+            return data;
+        } catch (error) {
+            console.error('❌ API: Failed to fetch available tables:', error);
+            throw error;
+        }
     },
 
     checkAvailability: async (date, time) => {
@@ -263,20 +278,11 @@ export const adminApi = {
         return data;
     },
 
-    // ✅ BOOKING MANAGEMENT - CRITICAL FIX
-    // Backend returns ResponseEntity.ok(allBookings) which means:
-    // response.json() returns the array DIRECTLY (not wrapped in .data)
+    // Booking Management
     getAllBookings: async () => {
         try {
-            // Backend endpoint: /bookings/admin/all
-            // Backend returns: ResponseEntity.ok(allBookings)
-            // This means response.json() = array directly
             const data = await apiCall('/bookings/admin/all');
-
             console.log('Raw booking data from backend:', data);
-
-            // ✅ CRITICAL: Backend returns array directly, not wrapped
-            // So data IS the array already
             return Array.isArray(data) ? data : [];
         } catch (error) {
             console.error('Failed to fetch bookings:', error);

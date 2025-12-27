@@ -31,6 +31,7 @@ public class BookingController {
     private final TableBookingService bookingService;
 
     // ==================== CUSTOMER ENDPOINTS ====================
+    // ✅ CRITICAL: All specific paths MUST come BEFORE /{bookingId}
 
     /**
      * Create a new table booking
@@ -68,14 +69,42 @@ public class BookingController {
     }
 
     /**
-     * Check availability for specific date and time
+     * ✅ MOVED UP: Get available tables for specific date and time
+     * MUST be before /{bookingId} to avoid route conflict
+     */
+    @GetMapping("/available-tables")
+    public ResponseEntity<?> getAvailableTables(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam String time) {
+        try {
+            log.info("📡 Checking available tables for {} at {}", date, time);
+
+            List<Integer> availableTables = bookingService.getAvailableTablesForSlot(date, time);
+
+            log.info("✅ Found {} available tables", availableTables.size());
+
+            return ResponseEntity.ok(Map.of(
+                    "date", date,
+                    "time", time,
+                    "availableTables", availableTables,
+                    "totalTables", 20
+            ));
+        } catch (Exception e) {
+            log.error("❌ Failed to fetch available tables: {}", e.getMessage());
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse(false, "Failed to check availability: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Check availability for specific date and time (legacy endpoint)
      */
     @GetMapping("/check-availability")
     public ResponseEntity<?> checkAvailability(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime time) {
+            @RequestParam String time) {
         try {
-            boolean isAvailable = bookingService.isSlotAvailable(date, time);
+            boolean isAvailable = bookingService.isSlotAvailable(date, LocalTime.parse(time));
             return ResponseEntity.ok(Map.of(
                     "available", isAvailable,
                     "date", date,
@@ -89,7 +118,8 @@ public class BookingController {
     }
 
     /**
-     * Get booking by ID
+     * ✅ MOVED DOWN: Get booking by ID
+     * Path variable routes MUST come AFTER all specific paths
      */
     @GetMapping("/{bookingId}")
     @PreAuthorize("isAuthenticated()")
