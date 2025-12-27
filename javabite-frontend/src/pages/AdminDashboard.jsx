@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { adminApi } from '../api/api';
 import AdminTableBookingManagement from '../components/AdminTableBookingManagement';
+import StaffContent from '../components/StaffContent';
+
 import '../styles/AdminDashboard.css';
 
 const AdminDashboard = () => {
@@ -26,7 +28,6 @@ const AdminDashboard = () => {
     // UI states
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [assignForm, setAssignForm] = useState({ chefId: '', waiterId: '' });
-    const [staffForm, setStaffForm] = useState({ name: '', email: '', password: '' });
     const [menuForm, setMenuForm] = useState({
         name: '',
         description: '',
@@ -37,9 +38,7 @@ const AdminDashboard = () => {
     });
 
     // Modal states
-    const [showStaffModal, setShowStaffModal] = useState(false);
     const [showMenuModal, setShowMenuModal] = useState(false);
-    const [staffType, setStaffType] = useState('');
     const [menuModalMode, setMenuModalMode] = useState('create');
     const [selectedMenuItem, setSelectedMenuItem] = useState(null);
 
@@ -183,34 +182,6 @@ const AdminDashboard = () => {
     };
 
     // Staff Management Functions
-    const handleCreateStaff = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        setError('');
-        setSuccess('');
-
-        try {
-            if (staffType === 'chef') {
-                await adminApi.createChef(staffForm);
-                setSuccess('Chef created successfully!');
-            } else {
-                await adminApi.createWaiter(staffForm);
-                setSuccess('Waiter created successfully!');
-            }
-
-            setShowStaffModal(false);
-            setStaffForm({ name: '', email: '', password: '' });
-            await fetchStaff();
-
-            setTimeout(() => setSuccess(''), 3000);
-        } catch (err) {
-            console.error('Create staff error:', err);
-            setError(err.message || 'Failed to create staff member');
-        } finally {
-            setLoading(false);
-        }
-    };
-
     const handleToggleStaff = async (userId) => {
         try {
             await adminApi.toggleStaffStatus(userId);
@@ -476,85 +447,13 @@ const AdminDashboard = () => {
                             waiters={waiters}
                             onToggle={handleToggleStaff}
                             onDelete={handleDeleteStaff}
-                            onAddChef={() => {
-                                setStaffType('chef');
-                                setShowStaffModal(true);
-                            }}
-                            onAddWaiter={() => {
-                                setStaffType('waiter');
-                                setShowStaffModal(true);
-                            }}
+                            onRefresh={fetchStaff}
                         />
                     )}
 
                     {activeTab === 'reports' && <ReportsContent />}
                 </div>
             </main>
-
-            {/* Staff Modal */}
-            {showStaffModal && (
-                <Modal
-                    title={`Add New ${staffType === 'chef' ? 'Chef' : 'Waiter'}`}
-                    onClose={() => {
-                        setShowStaffModal(false);
-                        setStaffForm({ name: '', email: '', password: '' });
-                    }}
-                >
-                    <form onSubmit={handleCreateStaff} className="modal-form">
-                        <div className="form-group">
-                            <label>Name *</label>
-                            <input
-                                type="text"
-                                value={staffForm.name}
-                                onChange={(e) => setStaffForm({ ...staffForm, name: e.target.value })}
-                                required
-                                className="form-input"
-                            />
-                        </div>
-
-                        <div className="form-group">
-                            <label>Email *</label>
-                            <input
-                                type="email"
-                                value={staffForm.email}
-                                onChange={(e) => setStaffForm({ ...staffForm, email: e.target.value })}
-                                required
-                                className="form-input"
-                            />
-                        </div>
-
-                        <div className="form-group">
-                            <label>Password (leave blank for auto-generated)</label>
-                            <input
-                                type="password"
-                                value={staffForm.password}
-                                onChange={(e) => setStaffForm({ ...staffForm, password: e.target.value })}
-                                className="form-input"
-                            />
-                        </div>
-
-                        <div className="modal-actions">
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setShowStaffModal(false);
-                                    setStaffForm({ name: '', email: '', password: '' });
-                                }}
-                                className="btn btn-secondary"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="submit"
-                                disabled={loading || !staffForm.name || !staffForm.email}
-                                className="btn btn-primary"
-                            >
-                                {loading ? 'Creating...' : 'Create'}
-                            </button>
-                        </div>
-                    </form>
-                </Modal>
-            )}
 
             {/* Menu Item Modal */}
             {showMenuModal && (
@@ -904,76 +803,6 @@ const MenuContent = ({ menuItems, onEdit, onDelete, onAdd }) => (
                     </div>
                 </div>
             ))}
-        </div>
-    </div>
-);
-
-const StaffContent = ({ chefs, waiters, onToggle, onDelete, onAddChef, onAddWaiter }) => (
-    <div className="staff-content">
-        <div className="section-header">
-            <h2>Staff Management</h2>
-            <div className="button-group">
-                <button onClick={onAddChef} className="btn btn-primary">
-                    + Add Chef
-                </button>
-                <button onClick={onAddWaiter} className="btn btn-primary">
-                    + Add Waiter
-                </button>
-            </div>
-        </div>
-
-        <div className="staff-grid">
-            <div className="staff-section">
-                <h3>Chefs ({chefs.length})</h3>
-                {chefs.map(chef => (
-                    <div key={chef.id} className="staff-item">
-                        <div className="staff-info">
-                            <div className="staff-name">{chef.name}</div>
-                            <div className="staff-email">{chef.email}</div>
-                        </div>
-                        <div className="staff-actions">
-                            <button
-                                onClick={() => onToggle(chef.id)}
-                                className={`btn btn-sm ${chef.enabled ? 'btn-success' : 'btn-danger'}`}
-                            >
-                                {chef.enabled ? 'Active' : 'Disabled'}
-                            </button>
-                            <button
-                                onClick={() => onDelete(chef.id)}
-                                className="btn btn-sm btn-danger"
-                            >
-                                Delete
-                            </button>
-                        </div>
-                    </div>
-                ))}
-            </div>
-
-            <div className="staff-section">
-                <h3>Waiters ({waiters.length})</h3>
-                {waiters.map(waiter => (
-                    <div key={waiter.id} className="staff-item">
-                        <div className="staff-info">
-                            <div className="staff-name">{waiter.name}</div>
-                            <div className="staff-email">{waiter.email}</div>
-                        </div>
-                        <div className="staff-actions">
-                            <button
-                                onClick={() => onToggle(waiter.id)}
-                                className={`btn btn-sm ${waiter.enabled ? 'btn-success' : 'btn-danger'}`}
-                            >
-                                {waiter.enabled ? 'Active' : 'Disabled'}
-                            </button>
-                            <button
-                                onClick={() => onDelete(waiter.id)}
-                                className="btn btn-sm btn-danger"
-                            >
-                                Delete
-                            </button>
-                        </div>
-                    </div>
-                ))}
-            </div>
         </div>
     </div>
 );

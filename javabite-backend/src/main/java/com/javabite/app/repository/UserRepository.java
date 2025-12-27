@@ -14,6 +14,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Boolean existsByEmail(String email);
     Long countByRoleAndEnabled(Role role, boolean enabled);
 
-    // ✅ ADD THIS METHOD
-    Optional<User> findByInvitationToken(String token);
+    // ADD THIS METHOD
+    Optional<User> findByInvitationToken(String invitationToken);
 }

@@ -373,6 +373,55 @@ export const waiterApi = {
     },
 };
 
+// ============= INVITATION API =============
+export const invitationApi = {
+    // Send invitation (Admin only)
+    sendInvitation: async (invitationData) => {
+        const data = await apiCall('/invitations/send', {
+            method: 'POST',
+            body: JSON.stringify(invitationData),
+        });
+        return data;
+    },
+
+    // Validate invitation token (Public)
+    validateToken: async (token) => {
+        const data = await apiCall(`/invitations/validate/${token}`);
+        return data;
+    },
+
+    // Accept invitation (Public)
+    acceptInvitation: async (acceptData) => {
+        const data = await apiCall('/invitations/accept', {
+            method: 'POST',
+            body: JSON.stringify(acceptData),
+        });
+        return data;
+    },
+
+    // Get pending invitations (Admin only)
+    getPendingInvitations: async () => {
+        const data = await apiCall('/invitations/pending');
+        return data;
+    },
+
+    // Resend invitation (Admin only)
+    resendInvitation: async (userId) => {
+        const data = await apiCall(`/invitations/${userId}/resend`, {
+            method: 'POST',
+        });
+        return data;
+    },
+
+    // Cancel invitation (Admin only)
+    cancelInvitation: async (userId) => {
+        const data = await apiCall(`/invitations/${userId}/cancel`, {
+            method: 'DELETE',
+        });
+        return data;
+    },
+};
+
 export default {
     authApi,
     menuApi,
@@ -381,4 +430,5 @@ export default {
     chefApi,
     waiterApi,
     bookingApi,
+    invitationApi,
 };

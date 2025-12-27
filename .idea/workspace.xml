@@ -44,12 +44,12 @@
     &quot;assignee&quot;: &quot;Ayush-kat&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/Ayush-kat/JavaBite.git&quot;,
-    &quot;accountId&quot;: &quot;fe15bf92-5afa-42f7-8612-5413eea68058&quot;
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/Ayush-kat/JavaBite-Coffee-App.git",
+    "accountId": "fe15bf92-5afa-42f7-8612-5413eea68058"
   }
-}</component>
+}]]></component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$PROJECT_DIR$/javabite-backend/src/main/java/com/javabite/app/model/ChefQueue.java" root0="SKIP_INSPECTION" />
   </component>
@@ -185,7 +185,7 @@
       <workItem from="1765117318514" duration="43030000" />
       <workItem from="1765696435535" duration="26064000" />
       <workItem from="1765737285834" duration="1603000" />
-      <workItem from="1766686351038" duration="13433000" />
+      <workItem from="1766686351038" duration="27281000" />
     </task>
     <task id="LOCAL-00001" summary="login and signup Authentication done by backend.">
       <option name="closed" value="true" />
@@ -267,7 +267,15 @@
       <option name="project" value="LOCAL" />
       <updated>1766817613423</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="Order flow complete and working fine from customer -&gt; admin -&gt; chef -&gt; waiter.">
+      <option name="closed" value="true" />
+      <created>1766834762256</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1766834762256</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -329,7 +337,8 @@
     <MESSAGE value="Assignment bug fixed order is now routed to chef dashboard and waiter dashboard correctly." />
     <MESSAGE value="Order Assignment bug fixed Order is now routed to chef dashboard and waiter dashboard correctly." />
     <MESSAGE value="Table booking is completed from admin and customer dashboard." />
-    <option name="LAST_COMMIT_MESSAGE" value="Table booking is completed from admin and customer dashboard." />
+    <MESSAGE value="Order flow complete and working fine from customer -&gt; admin -&gt; chef -&gt; waiter." />
+    <option name="LAST_COMMIT_MESSAGE" value="Order flow complete and working fine from customer -&gt; admin -&gt; chef -&gt; waiter." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -341,7 +350,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="javascript">
           <url>file://$PROJECT_DIR$/javabite-frontend/src/App.jsx</url>
-          <line>19</line>
+          <line>22</line>
           <option name="timeStamp" value="18" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="javascript">
@@ -364,7 +373,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="javascript">
           <url>file://$PROJECT_DIR$/javabite-frontend/src/pages/AdminDashboard.jsx</url>
-          <line>11</line>
+          <line>13</line>
           <option name="timeStamp" value="29" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="javascript">

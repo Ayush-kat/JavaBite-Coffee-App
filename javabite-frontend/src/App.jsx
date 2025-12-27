@@ -1,3 +1,6 @@
+import AcceptInvitation from './components/AcceptInvitation';
+
+// Inside your routes:
 import React, { useState } from 'react';
 import {authApi} from './api/api.js';
 import { Routes, Route, Navigate, Link } from 'react-router-dom';
@@ -97,11 +100,11 @@ function App() {
                 <Route path="/cart" element={<CartPage cart={cart} setCart={setCart} />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<SignupPage />} />
+                <Route path="/accept-invite" element={<AcceptInvitation />} />
                 <Route path="/admin/table-bookings" element={<AdminTableBookingManagement />} />
                 <Route path="/book-table" element={<CustomerTableBookingPage />} />
                 <Route path="/waiter/dashboard" element={
-                    <ProtectedRoute element={<WaiterDashboard />} requiredRole="WAITER" />
-                } />
+                    <ProtectedRoute element={<WaiterDashboard />} requiredRole="WAITER" />} />
 
                 {/* Protected Routes - Require Authentication */}
                 <Route
