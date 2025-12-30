@@ -26,49 +26,50 @@ public class AutoAssignmentScheduler {
     private final OrderService orderService;
 
     /**
-     * ✅ Auto-assign orders that have been pending for more than 5 minutes
+     * ✅✅✅ FIXED: Auto-assign orders that have been pending for more than 2 minutes
      * Runs every minute
+     * NOW ASSIGNS BOTH CHEF AND WAITER
      */
     @Scheduled(fixedRate = 60000) // Run every 1 minute
     @Transactional
     public void autoAssignPendingOrders() {
         try {
-            LocalDateTime fiveMinutesAgo = LocalDateTime.now().minusMinutes(5);
+            // ✅ FIX: Changed from 5 minutes to 2 minutes
+            LocalDateTime twoMinutesAgo = LocalDateTime.now().minusMinutes(2);
 
-            // ✅ Find PENDING orders without chef, older than 5 minutes
+            // ✅ Find PENDING orders without chef, older than 2 minutes
             List<Order> unassignedOrders = orderRepository
                     .findByStatusAndChefIsNull(OrderStatus.PENDING)
                     .stream()
-                    .filter(o -> o.getCreatedAt().isBefore(fiveMinutesAgo))
+                    .filter(o -> o.getCreatedAt().isBefore(twoMinutesAgo))
                     .collect(Collectors.toList());
 
             if (unassignedOrders.isEmpty()) {
                 return;
             }
 
-            log.info("🤖 Auto-assignment: Found {} orders pending for 5+ minutes",
+            log.info("🤖 Auto-assignment: Found {} orders pending for 2+ minutes",
                     unassignedOrders.size());
 
             // ✅ Get available chefs (enabled + can accept orders)
-            List<User> availableChefs = userRepository.findAll().stream()
-                    .filter(u -> u.getRole() == Role.CHEF)
-                    .filter(User::isEnabled)
+            List<User> availableChefs = userRepository.findByRoleAndEnabled(Role.CHEF, true)
+                    .stream()
                     .filter(User::canAcceptOrder)
                     .collect(Collectors.toList());
 
             // ✅ Get available waiters
-            List<User> availableWaiters = userRepository.findAll().stream()
-                    .filter(u -> u.getRole() == Role.WAITER)
-                    .filter(User::isEnabled)
+            List<User> availableWaiters = userRepository.findByRoleAndEnabled(Role.WAITER, true)
+                    .stream()
                     .filter(User::canAcceptOrder)
                     .collect(Collectors.toList());
 
             if (availableChefs.isEmpty()) {
-                log.warn("⚠️ No available chefs for auto-assignment");
+                log.warn("⚠️ No available chefs for auto-assignment - adding to queue");
+
                 // Add to queue instead
                 for (Order order : unassignedOrders) {
-                    User anyChef = userRepository.findAll().stream()
-                            .filter(u -> u.getRole() == Role.CHEF && u.isEnabled())
+                    User anyChef = userRepository.findByRoleAndEnabled(Role.CHEF, true)
+                            .stream()
                             .findFirst()
                             .orElse(null);
 
@@ -80,7 +81,7 @@ public class AutoAssignmentScheduler {
                 return;
             }
 
-            // ✅ Auto-assign orders
+            // ✅✅✅ CRITICAL FIX: Auto-assign BOTH chef AND waiter
             int assignedCount = 0;
             int chefIndex = 0;
             int waiterIndex = 0;
@@ -91,56 +92,75 @@ public class AutoAssignmentScheduler {
                     break;
                 }
 
-                // Get next available chef (round-robin)
+                boolean chefAssigned = false;
+                boolean waiterAssigned = false;
+
+                // ✅ Assign chef to order
                 User chef = availableChefs.get(chefIndex % availableChefs.size());
 
-                // Assign chef to order
                 order.setChef(chef);
                 order.setChefAssignedAt(LocalDateTime.now());
                 order.setAutoAssigned(true); // ✅ Mark as auto-assigned
 
-                // Optionally assign waiter if available
-                if (!availableWaiters.isEmpty()) {
-                    User waiter = availableWaiters.get(waiterIndex % availableWaiters.size());
-                    order.setWaiter(waiter);
-                    order.setWaiterAssignedAt(LocalDateTime.now());
-
-                    waiter.incrementActiveOrders();
-                    userRepository.save(waiter);
-
-                    // Move to next waiter
-                    waiterIndex++;
-                    if (!waiter.canAcceptOrder()) {
-                        availableWaiters.remove(waiter);
-                        waiterIndex = 0;
-                    }
-                }
-
                 chef.incrementActiveOrders();
                 userRepository.save(chef);
-                orderRepository.save(order);
+                chefAssigned = true;
 
-                assignedCount++;
-
-                log.info("🤖 Auto-assigned Order #{} → Chef: {}{}",
-                        order.getId(),
-                        chef.getName(),
-                        order.getWaiter() != null ? ", Waiter: " + order.getWaiter().getName() : "");
+                log.info("🤖 Auto-assigned Chef {} to Order #{}", chef.getName(), order.getId());
 
                 // Move to next chef
                 chefIndex++;
                 if (!chef.canAcceptOrder()) {
                     availableChefs.remove(chef);
-                    chefIndex = 0;
+                    if (chefIndex >= availableChefs.size() && !availableChefs.isEmpty()) {
+                        chefIndex = 0;
+                    }
                 }
+
+                // ✅✅✅ CRITICAL FIX: Auto-assign waiter if available
+                if (!availableWaiters.isEmpty()) {
+                    User waiter = availableWaiters.get(waiterIndex % availableWaiters.size());
+
+                    order.setWaiter(waiter);
+                    order.setWaiterAssignedAt(LocalDateTime.now());
+                    // autoAssigned already set to true above
+
+                    waiter.incrementActiveOrders();
+                    userRepository.save(waiter);
+                    waiterAssigned = true;
+
+                    log.info("🤖 Auto-assigned Waiter {} to Order #{}", waiter.getName(), order.getId());
+
+                    // Move to next waiter
+                    waiterIndex++;
+                    if (!waiter.canAcceptOrder()) {
+                        availableWaiters.remove(waiter);
+                        if (waiterIndex >= availableWaiters.size() && !availableWaiters.isEmpty()) {
+                            waiterIndex = 0;
+                        }
+                    }
+                } else {
+                    log.warn("⚠️ No available waiters for Order #{}", order.getId());
+                }
+
+                // Save order with both assignments
+                orderRepository.save(order);
+                assignedCount++;
+
+                log.info("✅ Auto-assigned Order #{} → Chef: {}{}, autoAssigned: {}",
+                        order.getId(),
+                        chef.getName(),
+                        waiterAssigned ? ", Waiter: " + order.getWaiter().getName() : " (NO WAITER AVAILABLE)",
+                        order.getAutoAssigned());
             }
 
             if (assignedCount > 0) {
-                log.info("✅ Auto-assignment completed: {} orders assigned", assignedCount);
+                log.info("✅✅✅ Auto-assignment completed: {} orders assigned", assignedCount);
             }
 
         } catch (Exception e) {
             log.error("❌ Auto-assignment failed", e);
+            e.printStackTrace();
         }
     }
 
@@ -152,11 +172,37 @@ public class AutoAssignmentScheduler {
     @Transactional
     public void processQueuedOrders() {
         try {
-            // TODO: Implement queue processing
-            // Get orders from chef_queue and waiter_queue
-            // Assign to available staff
-            // Remove from queue
-            log.debug("🔄 Queue processing - checking for available staff...");
+            // Get all available chefs
+            List<User> availableChefs = userRepository.findByRoleAndEnabled(Role.CHEF, true)
+                    .stream()
+                    .filter(User::canAcceptOrder)
+                    .collect(Collectors.toList());
+
+            // Process chef queue
+            for (User chef : availableChefs) {
+                try {
+                    orderService.processChefQueue(chef.getId());
+                } catch (Exception e) {
+                    log.debug("No orders in queue for chef {}", chef.getName());
+                }
+            }
+
+            // Get all available waiters
+            List<User> availableWaiters = userRepository.findByRoleAndEnabled(Role.WAITER, true)
+                    .stream()
+                    .filter(User::canAcceptOrder)
+                    .collect(Collectors.toList());
+
+            // Process waiter queue
+            for (User waiter : availableWaiters) {
+                try {
+                    orderService.processWaiterQueue(waiter.getId());
+                } catch (Exception e) {
+                    log.debug("No orders in queue for waiter {}", waiter.getName());
+                }
+            }
+
+            log.debug("🔄 Queue processing completed");
         } catch (Exception e) {
             log.error("❌ Queue processing failed", e);
         }

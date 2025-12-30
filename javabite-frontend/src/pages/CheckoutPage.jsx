@@ -146,6 +146,31 @@ const CheckoutPage = ({ cart = [], setCart }) => {
             return;
         }
 
+        // ✅ Validate card details if payment method is card
+        if (paymentMethod === 'card') {
+            if (!cardDetails.cardNumber || !cardDetails.cardName ||
+                !cardDetails.expiryDate || !cardDetails.cvv) {
+                setError('Please fill in all card details');
+                return;
+            }
+
+            // Basic card validation
+            if (cardDetails.cardNumber.replace(/\s/g, '').length !== 16) {
+                setError('Invalid card number');
+                return;
+            }
+
+            if (!/^\d{2}\/\d{2}$/.test(cardDetails.expiryDate)) {
+                setError('Invalid expiry date format (MM/YY)');
+                return;
+            }
+
+            if (cardDetails.cvv.length !== 3) {
+                setError('Invalid CVV');
+                return;
+            }
+        }
+
         setLoading(true);
         setError('');
 
@@ -159,7 +184,8 @@ const CheckoutPage = ({ cart = [], setCart }) => {
                 })),
                 specialInstructions: specialInstructions || null,
                 couponCode: couponCode || null,
-                tableBookingId: activeBooking.id  // ✅ Link to booking
+                tableBookingId: activeBooking.id,  // ✅ Link to booking
+                paymentMethod: paymentMethod.toUpperCase() // ✅ FIX: Send payment method ("CASH" or "CARD")
             };
 
             console.log('Creating order with booking:', orderData);

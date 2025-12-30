@@ -558,6 +558,32 @@ const OrderDetailsModal = ({ order, onClose, onRefresh }) => {
                         >
                             {order.status}
                         </div>
+
+                        {/*  NEW: Auto-Assigned Badge */}
+                        {order.autoAssigned && (
+                            <div
+                                style={{
+                                    padding: '10px 20px',
+                                    borderRadius: '25px',
+                                    fontSize: '14px',
+                                    fontWeight: '700',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.5px',
+                                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                                    background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)',
+                                    color: '#1565c0',
+                                    border: '2px solid #2196f3',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    transition: 'transform 0.2s ease'
+                                }}
+                                onMouseEnter={(e) => e.target.style.transform = 'scale(1.05)'}
+                                onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+                            >
+                                🤖 AUTO-ASSIGNED
+                            </div>
+                        )}
                     </div>
                     <button
                         onClick={onClose}
@@ -621,7 +647,7 @@ const OrderDetailsModal = ({ order, onClose, onRefresh }) => {
                         >
                             🖨️ Print Receipt
                         </button>
-                        {order.status === 'COMPLETED' && (
+                        {order.status === 'PAID' && (
                             <button
                                 onClick={handleRefundOrder}
                                 style={styles.actionBtnDanger}
@@ -719,28 +745,77 @@ const OrderDetailsModal = ({ order, onClose, onRefresh }) => {
                                 e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)';
                             }}
                         >
-                            <h3 style={styles.sectionTitle}>👥 Staff Assigned</h3>
+                            <h3 style={styles.sectionTitle}>
+                                👥 Staff Assigned
+                                {order.autoAssigned && (
+                                    <span style={{
+                                        marginLeft: '12px',
+                                        fontSize: '12px',
+                                        padding: '4px 12px',
+                                        background: '#e3f2fd',
+                                        color: '#1565c0',
+                                        borderRadius: '12px',
+                                        fontWeight: '600'
+                                    }}>
+                🤖 AUTO
+            </span>
+                                )}
+                            </h3>
                             <div style={styles.staffInfo}>
                                 <div
-                                    style={styles.staffMember}
+                                    style={{
+                                        ...styles.staffMember,
+                                        border: order.chef ? '2px solid #4caf50' : '2px dashed #e0e0e0'
+                                    }}
                                     onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
                                     onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                                 >
                                     <div style={styles.staffAvatar}>👨‍🍳</div>
                                     <div>
-                                        <div style={styles.staffRole}>Chef</div>
+                                        <div style={styles.staffRole}>
+                                            Chef
+                                            {order.autoAssigned && order.chef && (
+                                                <span style={{
+                                                    marginLeft: '6px',
+                                                    fontSize: '10px',
+                                                    padding: '2px 6px',
+                                                    background: '#e3f2fd',
+                                                    color: '#1565c0',
+                                                    borderRadius: '8px'
+                                                }}>
+                            AUTO
+                        </span>
+                                            )}
+                                        </div>
                                         <div style={styles.staffName}>{order.chef?.name || 'Not assigned'}</div>
                                         {order.chef && <div style={styles.staffEmail}>{order.chef.email}</div>}
                                     </div>
                                 </div>
                                 <div
-                                    style={styles.staffMember}
+                                    style={{
+                                        ...styles.staffMember,
+                                        border: order.waiter ? '2px solid #4caf50' : '2px dashed #e0e0e0'
+                                    }}
                                     onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
                                     onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                                 >
                                     <div style={styles.staffAvatar}>🤵</div>
                                     <div>
-                                        <div style={styles.staffRole}>Waiter</div>
+                                        <div style={styles.staffRole}>
+                                            Waiter
+                                            {order.autoAssigned && order.waiter && (
+                                                <span style={{
+                                                    marginLeft: '6px',
+                                                    fontSize: '10px',
+                                                    padding: '2px 6px',
+                                                    background: '#e3f2fd',
+                                                    color: '#1565c0',
+                                                    borderRadius: '8px'
+                                                }}>
+                            AUTO
+                        </span>
+                                            )}
+                                        </div>
                                         <div style={styles.staffName}>{order.waiter?.name || 'Not assigned'}</div>
                                         {order.waiter && <div style={styles.staffEmail}>{order.waiter.email}</div>}
                                     </div>

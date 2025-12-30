@@ -117,13 +117,15 @@ public class TableBookingService {
     /**
      * Cancel booking
      */
+
+// ✅ ALSO UPDATE: Regular cancelBooking to allow admin
     @Transactional
-    public TableBooking cancelBooking(Long bookingId, Long userId) {
+    public TableBooking cancelBooking(Long bookingId, Long userId, boolean isAdmin) {
         TableBooking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking not found"));
 
-        // ✅ FIXED: Use .getCustomer()
-        if (!booking.getCustomer().getId().equals(userId)) {
+        // ✅ FIX: Allow admin to cancel any booking
+        if (!isAdmin && !booking.getCustomer().getId().equals(userId)) {
             throw new RuntimeException("You can only cancel your own bookings");
         }
 
@@ -214,5 +216,30 @@ public class TableBookingService {
         stats.put("todayBookings", todayBookings);
 
         return stats;
+    }
+
+    /**
+     * Cancel booking by admin (no ownership check)
+     */
+    @Transactional
+    public TableBooking cancelBookingAdmin(Long bookingId) {
+        TableBooking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
+
+        if (booking.getStatus() == BookingStatus.CANCELLED) {
+            throw new RuntimeException("Booking is already cancelled");
+        }
+
+        if (booking.getStatus() == BookingStatus.COMPLETED) {
+            throw new RuntimeException("Cannot cancel completed bookings");
+        }
+
+        booking.setStatus(BookingStatus.CANCELLED);
+        booking.setCancelledAt(java.time.LocalDateTime.now());
+
+        TableBooking savedBooking = bookingRepository.save(booking);
+        log.info("✅ Admin cancelled Booking #{}", bookingId);
+
+        return savedBooking;
     }
 }

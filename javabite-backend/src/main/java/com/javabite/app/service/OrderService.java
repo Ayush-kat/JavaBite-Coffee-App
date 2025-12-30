@@ -27,9 +27,7 @@ public class OrderService {
     private final ChefQueueRepository chefQueueRepository;
     private final WaiterQueueRepository waiterQueueRepository;
 
-    /**
-     * ✅ Create order with mandatory table booking
-     */
+
     @Transactional
     public Order createOrder(Long customerId, CreateOrderRequest request) {
         User customer = userRepository.findById(customerId)
@@ -57,6 +55,10 @@ public class OrderService {
                 .status(OrderStatus.PENDING)
                 .createdAt(LocalDateTime.now())
                 .autoAssigned(false)
+                // ✅ Set payment details
+                .paymentStatus("PAID")
+                .paymentMethod(request.getPaymentMethod() != null ? request.getPaymentMethod() : "CASH")
+                .paidAt(LocalDateTime.now())
                 .build();
 
         // Add order items
@@ -83,23 +85,36 @@ public class OrderService {
             log.info("✅ Table booking #{} status: CONFIRMED → ACTIVE", booking.getId());
         }
 
-        // ✅ Check if table already has chef/waiter assigned from previous orders
+        // ✅✅✅ CRITICAL FIX: Only auto-assign if table ALREADY has staff from previous orders
+        // Do NOT auto-assign for first order - let admin assign (or auto-assign after 2 min timeout)
         List<Order> tableOrders = orderRepository.findByTableBooking(booking);
         if (tableOrders.size() > 1) {
+            // Table has previous orders - reuse same staff
             Order firstOrder = tableOrders.get(0);
+
             if (firstOrder.getChef() != null && !firstOrder.getId().equals(savedOrder.getId())) {
                 savedOrder.setChef(firstOrder.getChef());
                 savedOrder.setChefAssignedAt(LocalDateTime.now());
+                savedOrder.setAutoAssigned(true);
                 log.info("✅ Auto-assigned Chef {} to Order #{} (same table)",
                         firstOrder.getChef().getName(), savedOrder.getId());
             }
+
             if (firstOrder.getWaiter() != null && !firstOrder.getId().equals(savedOrder.getId())) {
                 savedOrder.setWaiter(firstOrder.getWaiter());
                 savedOrder.setWaiterAssignedAt(LocalDateTime.now());
+                savedOrder.setAutoAssigned(true);
                 log.info("✅ Auto-assigned Waiter {} to Order #{} (same table)",
                         firstOrder.getWaiter().getName(), savedOrder.getId());
             }
+
             savedOrder = orderRepository.save(savedOrder);
+        } else {
+            // ✅ This is the FIRST order for this table
+            // DO NOT auto-assign - order goes to admin pending dashboard
+            // Admin has 2 minutes to assign, then auto-assignment kicks in
+            log.info("📋 Order #{} created - waiting for admin assignment (or 2-min auto-assign)",
+                    savedOrder.getId());
         }
 
         log.info("✅ Order created: #{} for Table {} (Booking #{})",
@@ -109,10 +124,10 @@ public class OrderService {
     }
 
     /**
-     * ✅ Assign CHEF to order (and all orders on same table)
+     * ✅ FIXED: Assign CHEF to order (marks as auto-assigned if triggered by system)
      */
     @Transactional
-    public Order assignChefToOrder(Long orderId, Long chefId) {
+    public Order assignChefToOrder(Long orderId, Long chefId, boolean isAutoAssignment) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
@@ -127,7 +142,6 @@ public class OrderService {
             throw new RuntimeException("Chef is disabled");
         }
 
-        // ✅ Get ALL orders for this table
         TableBooking booking = order.getTableBooking();
         if (booking == null) {
             throw new RuntimeException("Order has no table booking");
@@ -135,9 +149,7 @@ public class OrderService {
 
         List<Order> tableOrders = orderRepository.findByTableBooking(booking);
 
-        // Check if chef can accept
         if (!chef.canAcceptOrder()) {
-            // Add ALL table orders to queue
             for (Order tableOrder : tableOrders) {
                 if (tableOrder.getChef() == null && !isOrderInChefQueue(tableOrder.getId())) {
                     addToChefQueue(tableOrder, chef);
@@ -147,13 +159,18 @@ public class OrderService {
             throw new RuntimeException("Chef is busy. Orders added to queue.");
         }
 
-        // ✅ Assign chef to ALL orders on table
         for (Order tableOrder : tableOrders) {
             if (tableOrder.getChef() == null) {
                 tableOrder.setChef(chef);
                 tableOrder.setChefAssignedAt(LocalDateTime.now());
+                // ✅ FIX: Set auto-assigned flag if this is auto-assignment
+                if (isAutoAssignment) {
+                    tableOrder.setAutoAssigned(true);
+                }
                 orderRepository.save(tableOrder);
-                log.info("✅ Assigned Chef {} to Order #{}", chef.getName(), tableOrder.getId());
+                log.info("✅ Assigned Chef {} to Order #{}{}",
+                        chef.getName(), tableOrder.getId(),
+                        isAutoAssignment ? " (AUTO)" : "");
             }
         }
 
@@ -168,8 +185,11 @@ public class OrderService {
      * ✅✅✅ FIXED: Assign WAITER to order (and all orders on same table)
      * Orders are assigned to waiter FIRST, then added to queue if waiter is busy
      */
+    /**
+     * ✅ FIXED: Assign WAITER to order (marks as auto-assigned if triggered by system)
+     */
     @Transactional
-    public Order assignWaiterToOrder(Long orderId, Long waiterId) {
+    public Order assignWaiterToOrder(Long orderId, Long waiterId, boolean isAutoAssignment) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
@@ -184,7 +204,6 @@ public class OrderService {
             throw new RuntimeException("Waiter is disabled");
         }
 
-        // ✅ Get ALL orders for this table
         TableBooking booking = order.getTableBooking();
         if (booking == null) {
             throw new RuntimeException("Order has no table booking");
@@ -192,19 +211,22 @@ public class OrderService {
 
         List<Order> tableOrders = orderRepository.findByTableBooking(booking);
 
-        // ✅✅✅ CRITICAL FIX: Assign waiter to ALL orders FIRST
         for (Order tableOrder : tableOrders) {
             if (tableOrder.getWaiter() == null) {
                 tableOrder.setWaiter(waiter);
                 tableOrder.setWaiterAssignedAt(LocalDateTime.now());
+                // ✅ FIX: Set auto-assigned flag if this is auto-assignment
+                if (isAutoAssignment) {
+                    tableOrder.setAutoAssigned(true);
+                }
                 orderRepository.save(tableOrder);
-                log.info("✅ Assigned Waiter {} to Order #{}", waiter.getName(), tableOrder.getId());
+                log.info("✅ Assigned Waiter {} to Order #{}{}",
+                        waiter.getName(), tableOrder.getId(),
+                        isAutoAssignment ? " (AUTO)" : "");
             }
         }
 
-        // Check if waiter can accept (has capacity)
         if (!waiter.canAcceptOrder()) {
-            // ✅ Waiter is busy - add orders to queue (waiter already assigned above)
             for (Order tableOrder : tableOrders) {
                 if (!isOrderInWaiterQueue(tableOrder.getId())) {
                     addToWaiterQueue(tableOrder, waiter);
@@ -213,13 +235,10 @@ public class OrderService {
             log.info("⏳ Table {} orders assigned to Waiter {} and added to queue (waiter busy)",
                     booking.getTableNumber(), waiter.getName());
 
-            // ✅✅✅ DON'T THROW EXCEPTION - Orders are successfully assigned!
-            // Return success - orders are assigned to waiter and will be activated from queue
             return orderRepository.findById(orderId)
                     .orElseThrow(() -> new RuntimeException("Order not found"));
         }
 
-        // ✅ Waiter has capacity - increment active orders immediately
         waiter.incrementActiveOrders();
         userRepository.save(waiter);
 
@@ -230,11 +249,22 @@ public class OrderService {
                 .orElseThrow(() -> new RuntimeException("Order not found"));
     }
 
+    // ✅ ALSO ADD: Overloaded methods for backward compatibility
+    @Transactional
+    public Order assignChefToOrder(Long orderId, Long chefId) {
+        return assignChefToOrder(orderId, chefId, false); // Manual assignment by default
+    }
+
+    @Transactional
+    public Order assignWaiterToOrder(Long orderId, Long waiterId) {
+        return assignWaiterToOrder(orderId, waiterId, false); // Manual assignment by default
+    }
+
     /**
      * ✅ Check if order is in chef queue
      */
     public boolean isOrderInChefQueue(Long orderId) {
-        return chefQueueRepository.findByOrderId(orderId).isPresent();
+        return chefQueueRepository.findByOrderId(orderId).isEmpty();
     }
 
     /**

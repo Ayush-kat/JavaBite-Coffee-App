@@ -147,7 +147,7 @@ public class BookingController {
     }
 
     /**
-     * Cancel booking
+     * Cancel booking - Works for both CUSTOMER and ADMIN
      */
     @PutMapping("/{bookingId}/cancel")
     @PreAuthorize("hasAnyRole('CUSTOMER', 'ADMIN')")
@@ -155,8 +155,17 @@ public class BookingController {
             @PathVariable Long bookingId,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         try {
-            TableBooking booking = bookingService.cancelBooking(bookingId, userDetails.getId());
-            log.info("✅ Booking #{} cancelled", bookingId);
+            // ✅ FIX: Check if user is actually an admin
+            boolean isAdmin = userDetails.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+            TableBooking booking = bookingService.cancelBooking(
+                    bookingId,
+                    userDetails.getId(),
+                    isAdmin  // ✅ Pass actual admin status
+            );
+
+            log.info("✅ Booking #{} cancelled by {}", bookingId, isAdmin ? "admin" : "customer");
             return ResponseEntity.ok(booking);
         } catch (RuntimeException e) {
             log.error("❌ Failed to cancel booking: {}", e.getMessage());
@@ -164,6 +173,7 @@ public class BookingController {
                     .body(new ApiResponse(false, e.getMessage()));
         }
     }
+
 
     // ==================== ADMIN ENDPOINTS ====================
 

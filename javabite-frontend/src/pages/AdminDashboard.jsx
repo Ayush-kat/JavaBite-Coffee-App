@@ -52,7 +52,7 @@ const AdminDashboard = () => {
     useEffect(() => {
         fetchData();
         // Auto-refresh every 30 seconds
-        const interval = setInterval(fetchData, 30000);
+        const interval = setInterval(fetchData, 60000);
         return () => clearInterval(interval);
     }, [activeTab]);
 
