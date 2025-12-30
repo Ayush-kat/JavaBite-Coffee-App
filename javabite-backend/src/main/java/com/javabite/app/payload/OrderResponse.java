@@ -38,6 +38,7 @@ public class OrderResponse {
     private LocalDateTime readyAt;
     private LocalDateTime servedAt;
     private LocalDateTime completedAt;
+    private Boolean autoAssigned;
 
     /**
      * ✅ FIXED: Null-safe conversion from Order entity
@@ -62,6 +63,7 @@ public class OrderResponse {
                         .collect(Collectors.toList())
                         : new ArrayList<>())
                 .status(order.getStatus())
+                .autoAssigned(order.getAutoAssigned())
                 .subtotal(order.getSubtotal() != null ? order.getSubtotal() : BigDecimal.ZERO)
                 .tax(order.getTax() != null ? order.getTax() : BigDecimal.ZERO)
                 .discount(order.getDiscount() != null ? order.getDiscount() : BigDecimal.ZERO)

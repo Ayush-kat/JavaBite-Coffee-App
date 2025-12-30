@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 public class OrderDTO {
     private Long id;
     private OrderStatus status;
+    private Boolean autoAssigned;
     private BigDecimal total;
     private LocalDateTime createdAt;
     private LocalDateTime preparationStartedAt;
@@ -53,6 +54,7 @@ public class OrderDTO {
         OrderDTO dto = new OrderDTO();
         dto.setId(order.getId());
         dto.setStatus(order.getStatus());
+        dto.setAutoAssigned(order.getAutoAssigned());
         dto.setTotal(order.getTotal());
         dto.setCreatedAt(order.getCreatedAt());
         dto.setPreparationStartedAt(order.getPreparationStartedAt());
