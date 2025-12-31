@@ -1,221 +1,355 @@
-import React, { useState } from 'react';
-import '../styles/Contact.css';
+import React from 'react';
 
 const ContactPage = () => {
-    const [formData, setFormData] = useState({
-        name: '',
-        email: '',
-        phone: '',
-        subject: '',
-        message: ''
-    });
-
-    const [submitted, setSubmitted] = useState(false);
-
-    const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
-        });
+    // ✅ Your restaurant's actual location
+    // TODO: Replace with your real coordinates
+    const RESTAURANT_LOCATION = {
+        name: "JavaBite Coffee",
+        address: "123 Coffee Street, Downtown",
+        latitude: 26.216363400803008,   // Replace with actual latitude
+        longitude: 78.18501699651586, // Replace with actual longitude
+        phone: "+1 (555) 123-4567",
+        email: "hello@javabite.com",
+        hours: {
+            weekdays: "7:00 AM - 10:00 PM",
+            weekends: "8:00 AM - 11:00 PM"
+        }
     };
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        // Here you would normally send the data to your backend
-        console.log('Form submitted:', formData);
-        setSubmitted(true);
+    // ✅ Handle Get Directions Click
+    const handleGetDirections = () => {
+        const { latitude, longitude, address } = RESTAURANT_LOCATION;
 
-        // Reset form after 3 seconds
-        setTimeout(() => {
-            setFormData({
-                name: '',
-                email: '',
-                phone: '',
-                subject: '',
-                message: ''
-            });
-            setSubmitted(false);
-        }, 3000);
+        // Detect if user is on iOS
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+        if (isIOS) {
+            // iOS: Offer Apple Maps or Google Maps
+            const useAppleMaps = window.confirm(
+                "🗺️ Choose your navigation app:\n\n" +
+                "✓ Click OK for Apple Maps\n" +
+                "✗ Click Cancel for Google Maps"
+            );
+
+            if (useAppleMaps) {
+                // Open Apple Maps
+                window.open(
+                    `maps://maps.apple.com/?daddr=${latitude},${longitude}&q=${encodeURIComponent(RESTAURANT_LOCATION.name)}`,
+                    '_blank'
+                );
+            } else {
+                // Open Google Maps
+                window.open(
+                    `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`,
+                    '_blank'
+                );
+            }
+        } else {
+            // Android/Desktop: Open Google Maps directly
+            window.open(
+                `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`,
+                '_blank'
+            );
+        }
+    };
+
+    // ✅ Alternative: Simple one-click version (Google Maps only)
+    const handleGetDirectionsSimple = () => {
+        const { latitude, longitude } = RESTAURANT_LOCATION;
+        window.open(
+            `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`,
+            '_blank'
+        );
     };
 
     return (
-        <div className="contact-page">
-            {/* Hero Section */}
-            <section className="contact-hero">
-                <div className="contact-hero-content">
-                    <h1 className="contact-hero-title">Get In Touch</h1>
-                    <p className="contact-hero-subtitle">
-                        We'd love to hear from you. Drop us a message!
+        <div style={{
+            minHeight: '100vh',
+            background: 'linear-gradient(135deg, #f5f0e8 0%, #e8dcc8 100%)',
+            padding: '60px 20px'
+        }}>
+            <div style={{
+                maxWidth: '1200px',
+                margin: '0 auto'
+            }}>
+                {/* Header */}
+                <div style={{
+                    textAlign: 'center',
+                    marginBottom: '60px'
+                }}>
+                    <h1 style={{
+                        fontSize: '48px',
+                        fontWeight: '700',
+                        color: '#3e2723',
+                        marginBottom: '16px'
+                    }}>
+                        Get In Touch
+                    </h1>
+                    <p style={{
+                        fontSize: '18px',
+                        color: '#6d4c41',
+                        maxWidth: '600px',
+                        margin: '0 auto'
+                    }}>
+                        We'd love to hear from you! Visit us, call, or send a message.
                     </p>
                 </div>
-            </section>
 
-            {/* Contact Content */}
-            <section className="contact-content">
-                <div className="contact-container">
-                    {/* Contact Info */}
-                    <div className="contact-info-section">
-                        <h2 className="contact-section-title">Contact Information</h2>
-
-                        <div className="contact-info-cards">
-                            <div className="contact-info-card">
-                                <div className="contact-info-icon">📍</div>
-                                <h3>Visit Us</h3>
-                                <p>123 Coffee Street<br/>Downtown, City 12345</p>
-                            </div>
-
-                            <div className="contact-info-card">
-                                <div className="contact-info-icon">📞</div>
-                                <h3>Call Us</h3>
-                                <p>(555) 123-4567<br/>Mon-Fri, 7AM-8PM</p>
-                            </div>
-
-                            <div className="contact-info-card">
-                                <div className="contact-info-icon">✉️</div>
-                                <h3>Email Us</h3>
-                                <p>hello@javabite.com<br/>support@javabite.com</p>
-                            </div>
-
-                            <div className="contact-info-card">
-                                <div className="contact-info-icon">🌐</div>
-                                <h3>Follow Us</h3>
-                                <div className="social-links">
-                                    <a href="#" className="social-link">Facebook</a>
-                                    <a href="#" className="social-link">Instagram</a>
-                                    <a href="#" className="social-link">Twitter</a>
-                                </div>
-                            </div>
+                <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
+                    gap: '32px',
+                    marginBottom: '60px'
+                }}>
+                    {/* Location Card */}
+                    <div style={{
+                        background: 'white',
+                        borderRadius: '20px',
+                        padding: '40px',
+                        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+                        textAlign: 'center'
+                    }}>
+                        <div style={{
+                            fontSize: '48px',
+                            marginBottom: '20px'
+                        }}>
+                            📍
                         </div>
+                        <h2 style={{
+                            fontSize: '24px',
+                            fontWeight: '700',
+                            color: '#3e2723',
+                            marginBottom: '16px'
+                        }}>
+                            Find Us Here
+                        </h2>
+                        <p style={{
+                            fontSize: '16px',
+                            color: '#6d4c41',
+                            marginBottom: '24px',
+                            lineHeight: '1.6'
+                        }}>
+                            {RESTAURANT_LOCATION.address}
+                        </p>
 
-                        {/* Hours */}
-                        <div className="hours-section">
-                            <h3 className="hours-title">Opening Hours</h3>
-                            <div className="hours-list">
-                                <div className="hours-item">
-                                    <span className="hours-day">Monday - Friday</span>
-                                    <span className="hours-time">7:00 AM - 8:00 PM</span>
-                                </div>
-                                <div className="hours-item">
-                                    <span className="hours-day">Saturday</span>
-                                    <span className="hours-time">8:00 AM - 9:00 PM</span>
-                                </div>
-                                <div className="hours-item">
-                                    <span className="hours-day">Sunday</span>
-                                    <span className="hours-time">8:00 AM - 9:00 PM</span>
-                                </div>
-                            </div>
-                        </div>
+                        {/* Get Directions Button */}
+                        <button
+                            onClick={handleGetDirections}
+                            style={{
+                                padding: '16px 40px',
+                                background: 'linear-gradient(135deg, #8b6f47 0%, #6d5635 100%)',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '30px',
+                                fontSize: '16px',
+                                fontWeight: '700',
+                                cursor: 'pointer',
+                                transition: 'all 0.3s ease',
+                                boxShadow: '0 4px 12px rgba(139, 111, 71, 0.3)',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '8px'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.target.style.transform = 'translateY(-2px)';
+                                e.target.style.boxShadow = '0 6px 16px rgba(139, 111, 71, 0.4)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.target.style.transform = 'translateY(0)';
+                                e.target.style.boxShadow = '0 4px 12px rgba(139, 111, 71, 0.3)';
+                            }}
+                        >
+                            Get Directions 🗺️
+                        </button>
                     </div>
 
-                    {/* Contact Form */}
-                    <div className="contact-form-section">
-                        <h2 className="contact-section-title">Send Us a Message</h2>
+                    {/* Phone Card */}
+                    <div style={{
+                        background: 'white',
+                        borderRadius: '20px',
+                        padding: '40px',
+                        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+                        textAlign: 'center'
+                    }}>
+                        <div style={{
+                            fontSize: '48px',
+                            marginBottom: '20px'
+                        }}>
+                            📞
+                        </div>
+                        <h2 style={{
+                            fontSize: '24px',
+                            fontWeight: '700',
+                            color: '#3e2723',
+                            marginBottom: '16px'
+                        }}>
+                            Call Us
+                        </h2>
+                        <p style={{
+                            fontSize: '16px',
+                            color: '#6d4c41',
+                            marginBottom: '24px'
+                        }}>
+                            {RESTAURANT_LOCATION.phone}
+                        </p>
+                        <a
+                            href={`tel:${RESTAURANT_LOCATION.phone}`}
+                            style={{
+                                padding: '16px 40px',
+                                background: '#4caf50',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '30px',
+                                fontSize: '16px',
+                                fontWeight: '700',
+                                cursor: 'pointer',
+                                textDecoration: 'none',
+                                display: 'inline-block',
+                                transition: 'all 0.3s ease',
+                                boxShadow: '0 4px 12px rgba(76, 175, 80, 0.3)'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.target.style.transform = 'translateY(-2px)';
+                                e.target.style.boxShadow = '0 6px 16px rgba(76, 175, 80, 0.4)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.target.style.transform = 'translateY(0)';
+                                e.target.style.boxShadow = '0 4px 12px rgba(76, 175, 80, 0.3)';
+                            }}
+                        >
+                            Call Now 📱
+                        </a>
+                    </div>
 
-                        {submitted ? (
-                            <div className="success-message">
-                                <div className="success-icon">✓</div>
-                                <h3>Thank You!</h3>
-                                <p>Your message has been sent successfully. We'll get back to you soon.</p>
-                            </div>
-                        ) : (
-                            <form onSubmit={handleSubmit} className="contact-form">
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label htmlFor="name">Full Name *</label>
-                                        <input
-                                            type="text"
-                                            id="name"
-                                            name="name"
-                                            value={formData.name}
-                                            onChange={handleChange}
-                                            required
-                                            placeholder="John Doe"
-                                        />
-                                    </div>
-
-                                    <div className="form-group">
-                                        <label htmlFor="email">Email Address *</label>
-                                        <input
-                                            type="email"
-                                            id="email"
-                                            name="email"
-                                            value={formData.email}
-                                            onChange={handleChange}
-                                            required
-                                            placeholder="john@example.com"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label htmlFor="phone">Phone Number</label>
-                                        <input
-                                            type="tel"
-                                            id="phone"
-                                            name="phone"
-                                            value={formData.phone}
-                                            onChange={handleChange}
-                                            placeholder="(555) 123-4567"
-                                        />
-                                    </div>
-
-                                    <div className="form-group">
-                                        <label htmlFor="subject">Subject *</label>
-                                        <select
-                                            id="subject"
-                                            name="subject"
-                                            value={formData.subject}
-                                            onChange={handleChange}
-                                            required
-                                        >
-                                            <option value="">Select a subject</option>
-                                            <option value="general">General Inquiry</option>
-                                            <option value="catering">Catering Services</option>
-                                            <option value="feedback">Feedback</option>
-                                            <option value="complaint">Complaint</option>
-                                            <option value="partnership">Partnership</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div className="form-group">
-                                    <label htmlFor="message">Message *</label>
-                                    <textarea
-                                        id="message"
-                                        name="message"
-                                        value={formData.message}
-                                        onChange={handleChange}
-                                        required
-                                        rows="6"
-                                        placeholder="Tell us what's on your mind..."
-                                    ></textarea>
-                                </div>
-
-                                <button type="submit" className="submit-btn">
-                                    Send Message
-                                </button>
-                            </form>
-                        )}
+                    {/* Email Card */}
+                    <div style={{
+                        background: 'white',
+                        borderRadius: '20px',
+                        padding: '40px',
+                        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+                        textAlign: 'center'
+                    }}>
+                        <div style={{
+                            fontSize: '48px',
+                            marginBottom: '20px'
+                        }}>
+                            ✉️
+                        </div>
+                        <h2 style={{
+                            fontSize: '24px',
+                            fontWeight: '700',
+                            color: '#3e2723',
+                            marginBottom: '16px'
+                        }}>
+                            Email Us
+                        </h2>
+                        <p style={{
+                            fontSize: '16px',
+                            color: '#6d4c41',
+                            marginBottom: '24px'
+                        }}>
+                            {RESTAURANT_LOCATION.email}
+                        </p>
+                        <a
+                            href={`mailto:${RESTAURANT_LOCATION.email}`}
+                            style={{
+                                padding: '16px 40px',
+                                background: '#2196f3',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '30px',
+                                fontSize: '16px',
+                                fontWeight: '700',
+                                cursor: 'pointer',
+                                textDecoration: 'none',
+                                display: 'inline-block',
+                                transition: 'all 0.3s ease',
+                                boxShadow: '0 4px 12px rgba(33, 150, 243, 0.3)'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.target.style.transform = 'translateY(-2px)';
+                                e.target.style.boxShadow = '0 6px 16px rgba(33, 150, 243, 0.4)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.target.style.transform = 'translateY(0)';
+                                e.target.style.boxShadow = '0 4px 12px rgba(33, 150, 243, 0.3)';
+                            }}
+                        >
+                            Send Email 💌
+                        </a>
                     </div>
                 </div>
-            </section>
 
-            {/* Map Section */}
-            <section className="map-section">
-                <div className="map-container">
-                    <img
-                        src="https://images.unsplash.com/photo-1524661135-423995f22d0b?w=1400&h=500&fit=crop"
-                        alt="Location map"
-                        className="map-image"
-                    />
-                    <div className="map-overlay">
-                        <h3>Find Us Here</h3>
-                        <p>123 Coffee Street, Downtown</p>
-                        <button className="directions-btn">Get Directions</button>
+                {/* Operating Hours */}
+                <div style={{
+                    background: 'white',
+                    borderRadius: '20px',
+                    padding: '40px',
+                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+                    textAlign: 'center'
+                }}>
+                    <h2 style={{
+                        fontSize: '32px',
+                        fontWeight: '700',
+                        color: '#3e2723',
+                        marginBottom: '32px'
+                    }}>
+                        ⏰ Operating Hours
+                    </h2>
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                        gap: '24px',
+                        maxWidth: '800px',
+                        margin: '0 auto'
+                    }}>
+                        <div style={{
+                            padding: '24px',
+                            background: '#f8f9fa',
+                            borderRadius: '16px',
+                            border: '2px solid #8b6f47'
+                        }}>
+                            <h3 style={{
+                                fontSize: '18px',
+                                fontWeight: '700',
+                                color: '#3e2723',
+                                marginBottom: '12px'
+                            }}>
+                                Monday - Friday
+                            </h3>
+                            <p style={{
+                                fontSize: '20px',
+                                fontWeight: '600',
+                                color: '#8b6f47'
+                            }}>
+                                {RESTAURANT_LOCATION.hours.weekdays}
+                            </p>
+                        </div>
+                        <div style={{
+                            padding: '24px',
+                            background: '#f8f9fa',
+                            borderRadius: '16px',
+                            border: '2px solid #8b6f47'
+                        }}>
+                            <h3 style={{
+                                fontSize: '18px',
+                                fontWeight: '700',
+                                color: '#3e2723',
+                                marginBottom: '12px'
+                            }}>
+                                Saturday - Sunday
+                            </h3>
+                            <p style={{
+                                fontSize: '20px',
+                                fontWeight: '600',
+                                color: '#8b6f47'
+                            }}>
+                                {RESTAURANT_LOCATION.hours.weekends}
+                            </p>
+                        </div>
                     </div>
                 </div>
-            </section>
+            </div>
         </div>
     );
 };

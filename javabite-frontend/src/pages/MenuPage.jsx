@@ -174,7 +174,7 @@ const MenuPage = ({ cart = [], setCart }) => {
 
     return (
         <div className="menu-page">
-            {/* Booking status banner (must be at top) */}
+             {/*Booking status banner (must be at top)*/}
             {/*<BookingStatusBanner />*/}
 
             {/* Hero Section */}

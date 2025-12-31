@@ -88,7 +88,7 @@ const AboutPage = () => {
                             alt="Team member"
                             className="team-photo"
                         />
-                        <h3 className="team-name">Alex Rodriguez</h3>
+                        <h3 className="team-name">Alan Rodriguez</h3>
                         <p className="team-role">Head Barista</p>
                         <p className="team-bio">
                             15 years of coffee expertise and latte art champion
@@ -134,14 +134,14 @@ const AboutPage = () => {
                             <div className="location-item">
                                 <strong>⏰ Hours</strong>
                                 <p>
-                                    Mon - Fri: 7:00 AM - 8:00 PM<br/>
-                                    Sat - Sun: 8:00 AM - 9:00 PM
+                                    Mon - Fri: 7:00 AM - 10:00 PM<br/>
+                                    Sat - Sun: 8:00 AM - 11:00 PM
                                 </p>
                             </div>
                             <div className="location-item">
                                 <strong>📞 Contact</strong>
                                 <p>
-                                    Phone: (555) 123-4567<br/>
+                                    Phone: +1 (555) 123-4567<br/>
                                     Email: hello@javabite.com
                                 </p>
                             </div>
