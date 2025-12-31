@@ -221,19 +221,22 @@ const ChefDashboard = () => {
                         className={`tab-btn ${activeTab === 'new' ? 'active' : ''}`}
                         onClick={() => setActiveTab('new')}
                     >
-                        New Orders ({getNewOrders().length})
+                        New Orders
+                        {/*({getNewOrders().length})*/}
                     </button>
                     <button
                         className={`tab-btn ${activeTab === 'progress' ? 'active' : ''}`}
                         onClick={() => setActiveTab('progress')}
                     >
-                        In Progress ({getProgressOrders().length})
+                        In Progress
+                        {/*({getProgressOrders().length})*/}
                     </button>
                     <button
                         className={`tab-btn ${activeTab === 'completed' ? 'active' : ''}`}
                         onClick={() => setActiveTab('completed')}
                     >
-                        Completed Today ({getCompletedOrders().length})
+                        Completed Today
+                        {/*({getCompletedOrders().length})*/}
                     </button>
                 </div>
 

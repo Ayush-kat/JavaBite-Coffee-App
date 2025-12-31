@@ -29,21 +29,44 @@ public class TableBookingService {
     // ==================== BOOKING CREATION ====================
 
     /**
-     * Create a new table booking
+     * ✅ FIXED: Create a new table booking with duplicate prevention
      */
     @Transactional
     public TableBooking createBooking(Long customerId, CreateBookingRequest request) {
         User customer = userRepository.findById(customerId)
                 .orElseThrow(() -> new RuntimeException("Customer not found"));
 
-        // Validate table availability
+        // ✅ CRITICAL FIX: Check for duplicate booking BEFORE creating
+        // Use optimized query instead of loading all bookings
+        List<TableBooking> existingBookings = bookingRepository.findByBookingDate(request.getBookingDate());
+
+        boolean isDuplicate = existingBookings.stream()
+                .anyMatch(b ->
+                        b.getTableNumber().equals(request.getTableNumber()) &&
+                                b.getBookingTime().equals(request.getBookingTime()) &&
+                                (b.getStatus() == BookingStatus.CONFIRMED || b.getStatus() == BookingStatus.ACTIVE)
+                );
+
+        if (isDuplicate) {
+            log.error("❌ Duplicate booking attempt - Table {} already booked for {} at {}",
+                    request.getTableNumber(), request.getBookingDate(), request.getBookingTime());
+            throw new RuntimeException(
+                    String.format("Table %d is already booked for %s at %s. Please select a different table or time.",
+                            request.getTableNumber(), request.getBookingDate(), request.getBookingTime())
+            );
+        }
+
+        // Double-check availability using optimized method
         if (!isTableAvailable(request.getTableNumber(), request.getBookingDate(), request.getBookingTime())) {
-            throw new RuntimeException("Table " + request.getTableNumber() + " is not available for the selected time");
+            throw new RuntimeException(
+                    String.format("Table %d is not available for the selected time. Please refresh and try again.",
+                            request.getTableNumber())
+            );
         }
 
         TableBooking booking = TableBooking.builder()
                 .customer(customer)
-                .user(customer) // ✅ Set both customer and user to same value
+                .user(customer)
                 .bookingDate(request.getBookingDate())
                 .bookingTime(request.getBookingTime())
                 .numberOfGuests(request.getNumberOfGuests())
@@ -63,37 +86,57 @@ public class TableBookingService {
     // ==================== AVAILABILITY CHECKING ====================
 
     /**
-     * Get available tables for a specific date and time slot
+     * ✅ FIXED: Get available tables for a specific date and time slot
+     * Optimized to only fetch bookings for specific date
      */
     public List<Integer> getAvailableTablesForSlot(LocalDate date, String time) {
+        log.info("🔍 Checking availability for date: {}, time: {}", date, time);
+
+        // All table numbers
         List<Integer> allTables = new ArrayList<>();
         for (int i = 1; i <= TOTAL_TABLES; i++) {
             allTables.add(i);
         }
 
-        // Get booked tables for this slot
-        List<TableBooking> bookedSlots = bookingRepository.findByTableNumberAndBookingDateAndStatus(
-                null, date, BookingStatus.CONFIRMED
-        );
+        // ✅ FIXED: Only get bookings for this specific date (optimized)
+        List<TableBooking> bookingsForDate = bookingRepository.findByBookingDate(date);
 
-        Set<Integer> bookedTables = bookedSlots.stream()
+        // Filter for specific time and active statuses
+        Set<Integer> bookedTables = bookingsForDate.stream()
                 .filter(b -> b.getBookingTime().equals(time))
                 .filter(b -> b.getStatus() == BookingStatus.CONFIRMED || b.getStatus() == BookingStatus.ACTIVE)
                 .map(TableBooking::getTableNumber)
                 .collect(Collectors.toSet());
 
-        // Return available tables
-        return allTables.stream()
+        log.info("📊 Date: {}, Time: {} - Booked tables: {}", date, time, bookedTables);
+
+        // Return available tables (all tables minus booked tables)
+        List<Integer> availableTables = allTables.stream()
                 .filter(table -> !bookedTables.contains(table))
                 .collect(Collectors.toList());
+
+        log.info("✅ Available tables: {} out of {}", availableTables.size(), TOTAL_TABLES);
+
+        return availableTables;
     }
 
     /**
-     * Check if a specific table is available for a date/time slot
+     * ✅ FIXED: Check if a specific table is available for a date/time slot
+     * Optimized to only query specific date
      */
     public boolean isTableAvailable(Integer tableNumber, LocalDate date, String time) {
-        List<Integer> availableTables = getAvailableTablesForSlot(date, time);
-        return availableTables.contains(tableNumber);
+        // Only get bookings for this specific date
+        List<TableBooking> bookingsForDate = bookingRepository.findByBookingDate(date);
+
+        // Check if this specific table has an active booking for this time
+        boolean isBooked = bookingsForDate.stream()
+                .anyMatch(b ->
+                        b.getTableNumber().equals(tableNumber) &&
+                                b.getBookingTime().equals(time) &&
+                                (b.getStatus() == BookingStatus.CONFIRMED || b.getStatus() == BookingStatus.ACTIVE)
+                );
+
+        return !isBooked;
     }
 
     /**
@@ -110,21 +153,17 @@ public class TableBookingService {
      * Get customer's bookings
      */
     public List<TableBooking> getCustomerBookings(Long customerId) {
-        // ✅ FIXED: Use correct repository method name
         return bookingRepository.findByCustomer_IdOrderByBookingDateDescBookingTimeDesc(customerId);
     }
 
     /**
      * Cancel booking
      */
-
-// ✅ ALSO UPDATE: Regular cancelBooking to allow admin
     @Transactional
     public TableBooking cancelBooking(Long bookingId, Long userId, boolean isAdmin) {
         TableBooking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking not found"));
 
-        // ✅ FIX: Allow admin to cancel any booking
         if (!isAdmin && !booking.getCustomer().getId().equals(userId)) {
             throw new RuntimeException("You can only cancel your own bookings");
         }
@@ -148,38 +187,23 @@ public class TableBookingService {
 
     // ==================== ADMIN METHODS ====================
 
-    /**
-     * Get all bookings
-     */
     public List<TableBooking> getAllBookings() {
         return bookingRepository.findAll();
     }
 
-    /**
-     * Get bookings by status
-     */
     public List<TableBooking> getBookingsByStatus(BookingStatus status) {
         return bookingRepository.findByStatus(status);
     }
 
-    /**
-     * Get bookings for a specific date
-     */
     public List<TableBooking> getBookingsForDate(LocalDate date) {
         return bookingRepository.findByBookingDate(date);
     }
 
-    /**
-     * Get booking by ID
-     */
     public TableBooking getBookingById(Long bookingId) {
         return bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking not found"));
     }
 
-    /**
-     * Update booking status
-     */
     @Transactional
     public TableBooking updateBookingStatus(Long bookingId, BookingStatus newStatus) {
         TableBooking booking = getBookingById(bookingId);
@@ -195,25 +219,20 @@ public class TableBookingService {
         return savedBooking;
     }
 
-    /**
-     * Get booking statistics
-     */
     public Map<String, Object> getBookingStats() {
-        List<TableBooking> allBookings = bookingRepository.findAll();
-
         Map<String, Object> stats = new HashMap<>();
-        stats.put("totalBookings", allBookings.size());
+
+        // Use count queries instead of loading all bookings
+        stats.put("totalBookings", bookingRepository.count());
         stats.put("confirmedBookings", bookingRepository.countByStatus(BookingStatus.CONFIRMED));
         stats.put("activeBookings", bookingRepository.countByStatus(BookingStatus.ACTIVE));
         stats.put("completedBookings", bookingRepository.countByStatus(BookingStatus.COMPLETED));
         stats.put("cancelledBookings", bookingRepository.countByStatus(BookingStatus.CANCELLED));
 
-        // Today's bookings
+        // Today's bookings - only load today's data
         LocalDate today = LocalDate.now();
-        long todayBookings = allBookings.stream()
-                .filter(b -> b.getBookingDate().equals(today))
-                .count();
-        stats.put("todayBookings", todayBookings);
+        List<TableBooking> todayBookings = bookingRepository.findByBookingDate(today);
+        stats.put("todayBookings", (long) todayBookings.size());
 
         return stats;
     }

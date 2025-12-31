@@ -653,6 +653,12 @@ const CustomerOrdersPage = ({ setCart }) => {
                                             <strong>Payment:</strong> {getPaymentStatus(selectedOrder)}
                                         </div>
                                     </div>
+                                    <div className="invoice-row">
+                                        <div>
+                                            <strong>Table : </strong> {selectedOrder.tableNumber}
+                                        </div>
+
+                                    </div>
                                 </div>
 
                                 <table className="invoice-table">

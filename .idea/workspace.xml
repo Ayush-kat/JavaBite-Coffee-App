@@ -339,7 +339,15 @@
       <option name="project" value="LOCAL" />
       <updated>1767122357334</updated>
     </task>
-    <option name="localTasksCounter" value="19" />
+    <task id="LOCAL-00019" summary="copy link added in Accept invitation staff.">
+      <option name="closed" value="true" />
+      <created>1767163019557</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1767163019557</updated>
+    </task>
+    <option name="localTasksCounter" value="20" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -409,7 +417,8 @@
     <MESSAGE value="Table Booking history page  completed." />
     <MESSAGE value="project completed!!. Additional features such as feedback etc." />
     <MESSAGE value="auto-assigned status fixed in ordermodaldetail page." />
-    <option name="LAST_COMMIT_MESSAGE" value="auto-assigned status fixed in ordermodaldetail page." />
+    <MESSAGE value="copy link added in Accept invitation staff." />
+    <option name="LAST_COMMIT_MESSAGE" value="copy link added in Accept invitation staff." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
