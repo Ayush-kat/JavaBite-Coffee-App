@@ -29,7 +29,8 @@ public class InvitationController {
     private final InvitationService invitationService;
 
     /**
-     * Send invitation to new staff member (ADMIN only)
+     * ✅ FIXED: Send invitation to new staff member (ADMIN only)
+     * Now returns token and invitation link in response
      */
     @PostMapping("/send")
     @PreAuthorize("hasRole('ADMIN')")
@@ -39,9 +40,15 @@ public class InvitationController {
         try {
             User user = invitationService.sendInvitation(request, userDetails.getId());
 
+            // ✅ FIX: Generate invitation link and include token in response
+            String token = user.getInvitationToken();
+            String invitationLink = "http://localhost:3000/accept-invitation?token=" + token;
+
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "Invitation sent successfully to " + request.getEmail());
+            response.put("token", token);  // ✅ ADDED: Token for copy link feature
+            response.put("invitationLink", invitationLink);  // ✅ ADDED: Full invitation link
             response.put("user", Map.of(
                     "id", user.getId(),
                     "name", user.getName(),
@@ -51,6 +58,7 @@ public class InvitationController {
             ));
 
             log.info("✅ Admin {} sent invitation to {}", userDetails.getEmail(), request.getEmail());
+            log.info("🔗 Invitation link: {}", invitationLink);
 
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
 
@@ -148,7 +156,8 @@ public class InvitationController {
     }
 
     /**
-     * Resend invitation (ADMIN only)
+     * ✅ FIXED: Resend invitation (ADMIN only)
+     * Now returns token and invitation link in response
      */
     @PostMapping("/{userId}/resend")
     @PreAuthorize("hasRole('ADMIN')")
@@ -158,11 +167,18 @@ public class InvitationController {
         try {
             User user = invitationService.resendInvitation(userId, userDetails.getId());
 
+            // ✅ FIX: Include token and link for resend too
+            String token = user.getInvitationToken();
+            String invitationLink = "http://localhost:3000/accept-invite?token=" + token;
+
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "Invitation resent to " + user.getEmail());
+            response.put("token", token);  // ✅ ADDED
+            response.put("invitationLink", invitationLink);  // ✅ ADDED
 
             log.info("✅ Admin {} resent invitation to {}", userDetails.getEmail(), user.getEmail());
+            log.info("🔗 New invitation link: {}", invitationLink);
 
             return ResponseEntity.ok(response);
 

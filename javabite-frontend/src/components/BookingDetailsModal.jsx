@@ -329,64 +329,64 @@ const BookingDetailsModal = ({ booking, onClose, onRefresh }) => {
                         </div>
                     )}
 
-                    {/* Cancellation & Refund Info */}
-                    {booking.status === 'CANCELLED' && (
-                        <div style={styles.section}>
-                            <h3 style={styles.sectionTitle}>❌ Cancellation Information</h3>
+                    {/*/!* Cancellation & Refund Info *!/*/}
+                    {/*{booking.status === 'CANCELLED' && (*/}
+                    {/*    <div style={styles.section}>*/}
+                    {/*        <h3 style={styles.sectionTitle}>❌ Cancellation Information</h3>*/}
 
-                            <div style={styles.cancellationBox}>
-                                <div style={styles.cancellationTitle}>
-                                    Booking Cancelled
-                                </div>
-                                {booking.cancellationReason && (
-                                    <p style={styles.cancellationText}>
-                                        <strong>Reason:</strong> {booking.cancellationReason}
-                                    </p>
-                                )}
-                                {booking.cancelledAt && (
-                                    <p style={styles.cancellationText}>
-                                        <strong>Cancelled On:</strong>{' '}
-                                        {new Date(booking.cancelledAt).toLocaleString()}
-                                    </p>
-                                )}
-                            </div>
+                    {/*        <div style={styles.cancellationBox}>*/}
+                    {/*            <div style={styles.cancellationTitle}>*/}
+                    {/*                Booking Cancelled*/}
+                    {/*            </div>*/}
+                    {/*            {booking.cancellationReason && (*/}
+                    {/*                <p style={styles.cancellationText}>*/}
+                    {/*                    <strong>Reason:</strong> {booking.cancellationReason}*/}
+                    {/*                </p>*/}
+                    {/*            )}*/}
+                    {/*            {booking.cancelledAt && (*/}
+                    {/*                <p style={styles.cancellationText}>*/}
+                    {/*                    <strong>Cancelled On:</strong>{' '}*/}
+                    {/*                    {new Date(booking.cancelledAt).toLocaleString()}*/}
+                    {/*                </p>*/}
+                    {/*            )}*/}
+                    {/*        </div>*/}
 
-                            {booking.refundStatus && booking.refundStatus !== 'NONE' && (
-                                <div style={styles.refundBox}>
-                                    <div style={styles.refundTitle}>
-                                        💰 Refund Information
-                                    </div>
-                                    <div style={styles.refundDetail}>
-                                        <span style={styles.refundLabel}>Refund Status:</span>
-                                        <span style={styles.refundValue}>
-                                            {booking.refundStatus === 'COMPLETED' ? '✅ Completed' : '⏳ Pending'}
-                                        </span>
-                                    </div>
-                                    {booking.refundAmount && booking.refundAmount > 0 && (
-                                        <div style={styles.refundDetail}>
-                                            <span style={styles.refundLabel}>Refund Amount:</span>
-                                            <span style={styles.refundValue}>
-                                                ${booking.refundAmount.toFixed(2)}
-                                            </span>
-                                        </div>
-                                    )}
-                                    {booking.refundedAt && (
-                                        <div style={styles.refundDetail}>
-                                            <span style={styles.refundLabel}>Refunded On:</span>
-                                            <span style={styles.refundValue}>
-                                                {new Date(booking.refundedAt).toLocaleString()}
-                                            </span>
-                                        </div>
-                                    )}
-                                    {booking.refundStatus === 'PENDING' && (
-                                        <div style={{marginTop: '12px', fontSize: '13px', color: '#555', fontStyle: 'italic'}}>
-                                            Your refund is being processed. It will be credited to your account within 3-5 business days.
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    )}
+                    {/*        {booking.refundStatus && booking.refundStatus !== 'NONE' && (*/}
+                    {/*            <div style={styles.refundBox}>*/}
+                    {/*                <div style={styles.refundTitle}>*/}
+                    {/*                    💰 Refund Information*/}
+                    {/*                </div>*/}
+                    {/*                <div style={styles.refundDetail}>*/}
+                    {/*                    <span style={styles.refundLabel}>Refund Status:</span>*/}
+                    {/*                    <span style={styles.refundValue}>*/}
+                    {/*                        {booking.refundStatus === 'COMPLETED' ? '✅ Completed' : '⏳ Pending'}*/}
+                    {/*                    </span>*/}
+                    {/*                </div>*/}
+                    {/*                {booking.refundAmount && booking.refundAmount > 0 && (*/}
+                    {/*                    <div style={styles.refundDetail}>*/}
+                    {/*                        <span style={styles.refundLabel}>Refund Amount:</span>*/}
+                    {/*                        <span style={styles.refundValue}>*/}
+                    {/*                            ${booking.refundAmount.toFixed(2)}*/}
+                    {/*                        </span>*/}
+                    {/*                    </div>*/}
+                    {/*                )}*/}
+                    {/*                {booking.refundedAt && (*/}
+                    {/*                    <div style={styles.refundDetail}>*/}
+                    {/*                        <span style={styles.refundLabel}>Refunded On:</span>*/}
+                    {/*                        <span style={styles.refundValue}>*/}
+                    {/*                            {new Date(booking.refundedAt).toLocaleString()}*/}
+                    {/*                        </span>*/}
+                    {/*                    </div>*/}
+                    {/*                )}*/}
+                    {/*                {booking.refundStatus === 'PENDING' && (*/}
+                    {/*                    <div style={{marginTop: '12px', fontSize: '13px', color: '#555', fontStyle: 'italic'}}>*/}
+                    {/*                        Your refund is being processed. It will be credited to your account within 3-5 business days.*/}
+                    {/*                    </div>*/}
+                    {/*                )}*/}
+                    {/*            </div>*/}
+                    {/*        )}*/}
+                    {/*    </div>*/}
+                    {/*)}*/}
 
                     {/* Active Booking Info */}
                     {(booking.status === 'CONFIRMED' || booking.status === 'ACTIVE') && (
