@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { orderApi } from '../api/api';
+import {feedbackApi, orderApi} from '../api/api';
+import FeedbackModal from '../components/FeedbackModal';  // ← Add this
 import '../styles/Orders.css';
 
 const CustomerOrdersPage = ({ setCart }) => {
@@ -19,6 +20,10 @@ const CustomerOrdersPage = ({ setCart }) => {
     const [dateFilter, setDateFilter] = useState('all'); // 'all', '7days', '30days'
     const [displayedOrders, setDisplayedOrders] = useState(10);
 
+    const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+    const [feedbackOrder, setFeedbackOrder] = useState(null);
+    const [orderFeedbacks, setOrderFeedbacks] = useState({});  // Track which orders have feedback
+
     useEffect(() => {
         if (!isAuthenticated) {
             navigate('/login');
@@ -31,6 +36,31 @@ const CustomerOrdersPage = ({ setCart }) => {
         loadOrders();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isAuthenticated, navigate]);
+
+    // 5. ADD NEW useEffect to check feedback status when orders load:
+    useEffect(() => {
+        if (orders.length > 0) {
+            // Check feedback status for all completed orders
+            orders
+                .filter(o => o.status === 'COMPLETED')
+                .forEach(order => {
+                    checkFeedbackStatus(order.id);
+                });
+        }
+    }, [orders]);
+
+    // 3. ADD FUNCTION to check feedback status:
+    const checkFeedbackStatus = async (orderId) => {
+        try {
+            const response = await feedbackApi.canSubmitFeedback(orderId);
+            setOrderFeedbacks(prev => ({
+                ...prev,
+                [orderId]: !response.canSubmit  // true if feedback already given
+            }));
+        } catch (err) {
+            console.error('Failed to check feedback for order', orderId, err);
+        }
+    };
 
     const fetchOrders = async () => {
         try {
@@ -457,6 +487,57 @@ const CustomerOrdersPage = ({ setCart }) => {
                                                                         Cancel
                                                                     </button>
                                                                 )}
+                                                                {/* ✅ ADD FEEDBACK BUTTON HERE */}
+                                                                {order.status === 'COMPLETED' && !orderFeedbacks[order.id] && (
+                                                                    <button
+                                                                        className="feedback-btn"
+                                                                        onClick={() => {
+                                                                            setFeedbackOrder(order);
+                                                                            setShowFeedbackModal(true);
+                                                                        }}
+                                                                        style={{
+                                                                            padding: '8px 16px',
+                                                                            background: 'linear-gradient(135deg, #ff9800 0%, #f57c00 100%)',
+                                                                            color: 'white',
+                                                                            border: 'none',
+                                                                            borderRadius: '8px',
+                                                                            fontSize: '14px',
+                                                                            fontWeight: '600',
+                                                                            cursor: 'pointer',
+                                                                            transition: 'all 0.3s ease'
+                                                                        }}
+                                                                        onMouseEnter={(e) => {
+                                                                            e.target.style.transform = 'translateY(-2px)';
+                                                                            e.target.style.boxShadow = '0 4px 12px rgba(255, 152, 0, 0.4)';
+                                                                        }}
+                                                                        onMouseLeave={(e) => {
+                                                                            e.target.style.transform = 'translateY(0)';
+                                                                            e.target.style.boxShadow = 'none';
+                                                                        }}
+                                                                    >
+                                                                        Give Feedback
+                                                                    </button>
+                                                                )}
+                                                                {/* ✅ SHOW BADGE IF FEEDBACK ALREADY GIVEN */}
+                                                                {order.status === 'COMPLETED' && orderFeedbacks[order.id] && (
+                                                                    <span
+                                                                        className="feedback-given"
+                                                                        style={{
+                                                                            padding: '8px 16px',
+                                                                            background: '#e8f5e9',
+                                                                            color: '#2e7d32',
+                                                                            borderRadius: '8px',
+                                                                            fontSize: '14px',
+                                                                            fontWeight: '600',
+                                                                            display: 'inline-flex',
+                                                                            alignItems: 'center',
+                                                                            gap: '6px'
+                                                                        }}
+                                                                    >
+            ✓ Feedback Given
+        </span>
+                                                                )}
+
                                                                 {(order.status === 'COMPLETED' || order.status === 'CANCELLED') && (
                                                                     <button
                                                                         className="reorder-btn"
@@ -503,6 +584,25 @@ const CustomerOrdersPage = ({ setCart }) => {
                             </>
                         )}
                     </>
+                )}
+
+                {/* Feedback Modal */}
+                {showFeedbackModal && feedbackOrder && (
+                    <FeedbackModal
+                        order={feedbackOrder}
+                        onClose={() => {
+                            setShowFeedbackModal(false);
+                            setFeedbackOrder(null);
+                        }}
+                        onSuccess={() => {
+                            // Refresh orders and mark feedback as given
+                            fetchOrders();
+                            setOrderFeedbacks(prev => ({
+                                ...prev,
+                                [feedbackOrder.id]: true
+                            }));
+                        }}
+                    />
                 )}
 
                 {/* Order Details Modal */}

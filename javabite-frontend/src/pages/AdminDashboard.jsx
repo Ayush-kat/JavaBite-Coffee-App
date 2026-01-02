@@ -5,6 +5,8 @@ import StaffContent from '../components/StaffContent';
 import OrdersHistoryPage from '../components/OrdersHistoryPage';
 import '../styles/AdminDashboard.css';
 import ReportsContent from '../components/ReportsContent';
+import AdminFeedbackPage from '../components/AdminFeedbackPage';
+
 
 const AdminDashboard = () => {
     const [activeTab, setActiveTab] = useState('dashboard');
@@ -324,6 +326,7 @@ const AdminDashboard = () => {
                         { id: 'products', icon: '📦', label: 'Menu Items' },
                         { id: 'staff', icon: '👥', label: 'Staff' },
                         { id: 'reports', icon: '📈', label: 'Reports' },
+                        { id: 'Customer Feedback', icon: '💬', label: 'Customer Feedback' },
                     ].map(item => (
                         <button
                             key={item.id}
@@ -411,6 +414,10 @@ const AdminDashboard = () => {
 
                     {activeTab === 'bookings' && (
                         <AdminTableBookingManagement />
+                    )}
+
+                    {activeTab === 'Customer Feedback' && (
+                        <AdminFeedbackPage />
                     )}
 
                     {activeTab === 'products' && (

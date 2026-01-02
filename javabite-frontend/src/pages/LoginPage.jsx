@@ -108,18 +108,17 @@ const LoginPage = () => {
                         </div>
 
                         <div className="auth-form-extras">
-                            <label className="remember-me">
-                                <input
-                                    type="checkbox"
-                                    name="rememberMe"
-                                    checked={formData.rememberMe}
-                                    onChange={handleChange}
-                                />
-                                <span>Remember me</span>
-                            </label>
-                            <Link to="/forgot-password" className="forgot-password">
+                            <a
+                                className="forgot-password"
+                                href="/forgot-password"
+                                style={{
+                                    color: '#8b6f47',
+                                    textDecoration: 'none',
+                                    fontSize: '14px'
+                                }}
+                            >
                                 Forgot Password?
-                            </Link>
+                            </a>
                         </div>
 
                         <button

@@ -549,6 +549,64 @@ export const invitationApi = {
     },
 };
 
+// ============= FEEDBACK API =============
+// Add this to your existing api.js file
+
+export const feedbackApi = {
+    // Create feedback for order
+    createFeedback: async (feedbackData) => {
+        const data = await apiCall('/feedback', {
+            method: 'POST',
+            body: JSON.stringify(feedbackData),
+        });
+        return data;
+    },
+
+    // Check if customer can submit feedback for order
+    canSubmitFeedback: async (orderId) => {
+        const data = await apiCall(`/feedback/can-submit/${orderId}`);
+        return data;
+    },
+
+    // Get feedback for specific order
+    getFeedbackByOrder: async (orderId) => {
+        const data = await apiCall(`/feedback/order/${orderId}`);
+        return data;
+    },
+
+    // Get my feedbacks
+    getMyFeedback: async () => {
+        const data = await apiCall('/feedback/my-feedback');
+        return data;
+    },
+
+    // Admin: Get all feedback
+    getAllFeedback: async () => {
+        const data = await apiCall('/feedback/admin/all');
+        return data;
+    },
+
+    // Admin: Get feedback by rating
+    getFeedbackByRating: async (rating) => {
+        const data = await apiCall(`/feedback/admin/rating/${rating}`);
+        return data;
+    },
+
+    // Admin: Get feedback stats
+    getFeedbackStats: async () => {
+        const data = await apiCall('/feedback/admin/stats');
+        return data;
+    },
+
+    // Admin: Delete feedback
+    deleteFeedback: async (feedbackId) => {
+        const data = await apiCall(`/feedback/admin/${feedbackId}`, {
+            method: 'DELETE',
+        });
+        return data;
+    },
+};
+
 export default {
     authApi,
     menuApi,
@@ -559,4 +617,5 @@ export default {
     bookingApi,
     invitationApi,
     customerApi,
+    feedbackApi,
 };

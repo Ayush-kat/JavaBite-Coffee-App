@@ -9,9 +9,12 @@ const CustomerTableBookingPage = () => {
     const [loading, setLoading] = useState(false);
     const [checkingAvailability, setCheckingAvailability] = useState(false);
     const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
     const [availableTables, setAvailableTables] = useState([]);
     const [selectedTable, setSelectedTable] = useState(null);
+
+    // ✅ Success modal states
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [bookingDetails, setBookingDetails] = useState(null);
 
     const TOTAL_TABLES = 20;
 
@@ -144,11 +147,16 @@ const CustomerTableBookingPage = () => {
 
             console.log('✅ Booking successful:', response);
 
-            setSuccess(`Table ${selectedTable} booked successfully! Redirecting to menu...`);
+            // ✅ Set booking details and show success modal
+            setBookingDetails({
+                tableNumber: selectedTable,
+                date: bookingForm.bookingDate,
+                time: bookingForm.bookingTime,
+                guests: bookingForm.numberOfGuests,
+                specialRequests: bookingForm.specialRequests
+            });
+            setShowSuccessModal(true);
 
-            setTimeout(() => {
-                navigate('/menu');
-            }, 2000);
         } catch (err) {
             console.error('❌ Booking failed:', err);
             setError(err.message || 'Failed to book table. The table may have been booked by someone else.');
@@ -158,6 +166,12 @@ const CustomerTableBookingPage = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    // ✅ Handle success modal close and navigation
+    const handleSuccessClose = () => {
+        setShowSuccessModal(false);
+        navigate('/menu');
     };
 
     const getMinDate = () => {
@@ -205,22 +219,6 @@ const CustomerTableBookingPage = () => {
                         Select date, time, and see available tables in real-time
                     </p>
                 </div>
-
-                {success && (
-                    <div style={{
-                        background: '#e8f5e9',
-                        border: '2px solid #4caf50',
-                        color: '#2e7d32',
-                        padding: '16px 24px',
-                        borderRadius: '12px',
-                        marginBottom: '24px',
-                        textAlign: 'center',
-                        fontSize: '16px',
-                        fontWeight: '600'
-                    }}>
-                        ✓ {success}
-                    </div>
-                )}
 
                 {error && (
                     <div style={{
@@ -651,9 +649,272 @@ const CustomerTableBookingPage = () => {
                 </div>
             </div>
 
+            {/* ✅ SUCCESS MODAL */}
+            {showSuccessModal && bookingDetails && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'rgba(0, 0, 0, 0.7)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 10000,
+                    backdropFilter: 'blur(8px)',
+                    animation: 'fadeIn 0.3s ease'
+                }}>
+                    <div style={{
+                        background: 'white',
+                        borderRadius: '24px',
+                        padding: '48px',
+                        maxWidth: '500px',
+                        width: '90%',
+                        textAlign: 'center',
+                        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+                        animation: 'slideUp 0.4s ease',
+                        position: 'relative'
+                    }}>
+                        {/* Success Animation */}
+                        <div style={{
+                            width: '120px',
+                            height: '120px',
+                            margin: '0 auto 24px',
+                            background: 'linear-gradient(135deg, #4caf50 0%, #2e7d32 100%)',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            animation: 'scaleIn 0.5s ease',
+                            boxShadow: '0 8px 24px rgba(76, 175, 80, 0.3)'
+                        }}>
+                            <div style={{
+                                fontSize: '64px',
+                                animation: 'checkmark 0.6s ease 0.2s both'
+                            }}>
+                                ✓
+                            </div>
+                        </div>
+
+                        {/* Success Title */}
+                        <h2 style={{
+                            fontSize: '32px',
+                            fontWeight: '700',
+                            color: '#2e7d32',
+                            marginBottom: '16px',
+                            animation: 'fadeInUp 0.5s ease 0.3s both'
+                        }}>
+                            Table Booked Successfully!
+                        </h2>
+
+                        <p style={{
+                            fontSize: '16px',
+                            color: '#666',
+                            marginBottom: '32px',
+                            animation: 'fadeInUp 0.5s ease 0.4s both'
+                        }}>
+                            Your reservation has been confirmed
+                        </p>
+
+                        {/* Booking Details */}
+                        <div style={{
+                            background: '#f8f9fa',
+                            borderRadius: '16px',
+                            padding: '24px',
+                            marginBottom: '32px',
+                            textAlign: 'left',
+                            animation: 'fadeInUp 0.5s ease 0.5s both'
+                        }}>
+                            <div style={{
+                                display: 'grid',
+                                gap: '16px'
+                            }}>
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    paddingBottom: '12px',
+                                    borderBottom: '2px solid #e0e0e0'
+                                }}>
+                                    <span style={{ color: '#666', fontSize: '14px' }}>🪑 Table Number:</span>
+                                    <span style={{ fontWeight: '700', fontSize: '20px', color: '#2e7d32' }}>
+                                        Table {bookingDetails.tableNumber}
+                                    </span>
+                                </div>
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    paddingBottom: '12px',
+                                    borderBottom: '1px solid #e0e0e0'
+                                }}>
+                                    <span style={{ color: '#666' }}>📅 Date:</span>
+                                    <span style={{ fontWeight: '600', color: '#333' }}>
+                                        {new Date(bookingDetails.date).toLocaleDateString('en-US', {
+                                            weekday: 'long',
+                                            year: 'numeric',
+                                            month: 'long',
+                                            day: 'numeric'
+                                        })}
+                                    </span>
+                                </div>
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    paddingBottom: '12px',
+                                    borderBottom: '1px solid #e0e0e0'
+                                }}>
+                                    <span style={{ color: '#666' }}>🕐 Time:</span>
+                                    <span style={{ fontWeight: '600', color: '#333' }}>{bookingDetails.time}</span>
+                                </div>
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between'
+                                }}>
+                                    <span style={{ color: '#666' }}>👥 Guests:</span>
+                                    <span style={{ fontWeight: '600', color: '#333' }}>{bookingDetails.guests} people</span>
+                                </div>
+                                {bookingDetails.specialRequests && (
+                                    <div style={{
+                                        marginTop: '8px',
+                                        padding: '12px',
+                                        background: '#fff3e0',
+                                        borderRadius: '8px',
+                                        borderLeft: '4px solid #ff9800'
+                                    }}>
+                                        <div style={{ fontSize: '12px', color: '#f57c00', marginBottom: '4px', fontWeight: '600' }}>
+                                            Special Requests:
+                                        </div>
+                                        <div style={{ fontSize: '14px', color: '#666' }}>
+                                            {bookingDetails.specialRequests}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Action Button */}
+                        <button
+                            onClick={handleSuccessClose}
+                            style={{
+                                width: '100%',
+                                padding: '16px 32px',
+                                background: 'linear-gradient(135deg, #4caf50 0%, #2e7d32 100%)',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '12px',
+                                fontSize: '18px',
+                                fontWeight: '700',
+                                cursor: 'pointer',
+                                transition: 'all 0.3s ease',
+                                boxShadow: '0 4px 12px rgba(76, 175, 80, 0.3)',
+                                animation: 'fadeInUp 0.5s ease 0.6s both'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.target.style.transform = 'translateY(-2px)';
+                                e.target.style.boxShadow = '0 6px 16px rgba(76, 175, 80, 0.4)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.target.style.transform = 'translateY(0)';
+                                e.target.style.boxShadow = '0 4px 12px rgba(76, 175, 80, 0.3)';
+                            }}
+                        >
+                            Continue to Menu →
+                        </button>
+
+                        {/* Confetti Background Effect */}
+                        <div style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            pointerEvents: 'none',
+                            overflow: 'hidden',
+                            borderRadius: '24px'
+                        }}>
+                            {[...Array(20)].map((_, i) => (
+                                <div
+                                    key={i}
+                                    style={{
+                                        position: 'absolute',
+                                        width: '10px',
+                                        height: '10px',
+                                        background: ['#4caf50', '#ff9800', '#2196f3', '#f44336'][i % 4],
+                                        borderRadius: '50%',
+                                        top: '-20px',
+                                        left: `${Math.random() * 100}%`,
+                                        animation: `confettiFall ${2 + Math.random() * 2}s ease-in ${Math.random() * 0.5}s both`,
+                                        opacity: 0.7
+                                    }}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <style>{`
                 @keyframes spin {
                     to { transform: rotate(360deg); }
+                }
+                
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                
+                @keyframes slideUp {
+                    from {
+                        opacity: 0;
+                        transform: translateY(40px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+                
+                @keyframes scaleIn {
+                    from {
+                        transform: scale(0);
+                    }
+                    to {
+                        transform: scale(1);
+                    }
+                }
+                
+                @keyframes checkmark {
+                    from {
+                        transform: scale(0) rotate(45deg);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: scale(1) rotate(0deg);
+                        opacity: 1;
+                    }
+                }
+                
+                @keyframes fadeInUp {
+                    from {
+                        opacity: 0;
+                        transform: translateY(20px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+                
+                @keyframes confettiFall {
+                    from {
+                        transform: translateY(0) rotate(0deg);
+                        opacity: 1;
+                    }
+                    to {
+                        transform: translateY(600px) rotate(360deg);
+                        opacity: 0;
+                    }
                 }
             `}</style>
         </div>

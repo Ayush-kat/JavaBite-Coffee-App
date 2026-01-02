@@ -21,6 +21,10 @@ import WaiterDashboard from './pages/WaiterDashboard';
 import './styles/App.css';
 import AdminTableBookingManagement from './components/AdminTableBookingManagement';
 import BookingHistoryPage from "./components/BookingHistoryPage.jsx";
+import AdminFeedbackPage from './components/AdminFeedbackPage.jsx';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
+
 
 const ProtectedRoute = ({ element, requiredRole }) => {
     const { user, isAuthenticated } = useAuth();
@@ -107,6 +111,9 @@ function App() {
                 <Route path="/admin/table-bookings" element={<AdminTableBookingManagement />} />
                 <Route path="/book-table" element={<CustomerTableBookingPage />} />
                 <Route path="/customer/bookings" element={<BookingHistoryPage />} />
+                <Route path="/admin/feedback" element={<AdminFeedbackPage />} />
+                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                <Route path="/reset-password/confirm" element={<ResetPasswordPage />} />
                 <Route path="/waiter/dashboard" element={
                     <ProtectedRoute element={<WaiterDashboard />} requiredRole="WAITER" />} />
 
